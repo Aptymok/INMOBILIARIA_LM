@@ -1,0 +1,26 @@
+name: Calidad de codigo
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Verificar TypeScript
+        run: npx tsc --noEmit
+      - name: Compilar aplicacion
+        run: npm run build
+        env:
+          ADMIN_USER: ci-test
+          ADMIN_PASSWORD: test-only-ci-not-for-production
