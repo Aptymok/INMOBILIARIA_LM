@@ -38,3 +38,13 @@ No se ha configurado ningún despliegue, base de datos ni integración con SFI. 
 4. CRM, operaciones, tareas y autorizaciones.
 5. Trámites, finanzas e indicadores.
 
+
+## Segunda iteración (en código; validación pendiente)
+
+- Detección preventiva de posibles contactos duplicados por correo o teléfono; todavía no es un bloqueo transaccional garantizado bajo concurrencia.
+- Rechazo de documentos idénticos dentro del mismo contacto y comprobación de firmas de archivo JPG/PNG/WebP/PDF.
+- Borrador descargable del expediente consolidado: índice con SHA-256 y anexos PDF/JPG/PNG. Los WebP y PDF incompatibles se omiten y se declara el total omitido. No equivale a certificación legal.
+- GitHub Actions: verificación TypeScript y compilación Next.js en cada push o PR. La ejecución real de estas verificaciones sigue pendiente de confirmar.
+- Criterios de aceptación en `docs/FASE_1_CRITERIOS.md`.
+
+**Repositorio público para revisión de Luis**: no subir documentos personales reales, credenciales ni archivos de clientes. La instancia sigue sin base de datos ni despliegue configurados.
