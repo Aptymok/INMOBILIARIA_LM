@@ -36,7 +36,7 @@ export default function Home(){
  <section>{selected?<><div className="row between"><h2>Expediente: {selected.name}</h2><span className="pill">{selected.kind==="prospect"?"Posible":"Nuevo cliente"}</span></div>
  <p className="muted">{selected.interest||"Sin interés declarado"}</p><div className="row">
  {selected.kind==="prospect"&&<button className="secondary" disabled={busy} onClick={convert}>Convertir a cliente</button>}
- <a href={"/api/contacts/"+selected.id+"/summary"}><button className="secondary">Descargar índice PDF</button></a></div>
+ <a href={"/api/contacts/"+selected.id+"/summary"} className="secondary">Descargar índice PDF</a><a href={"/api/contacts/"+selected.id+"/bundle"} className="secondary">Descargar borrador de expediente</a></div>
  <hr/><h3>Documentos y evidencia</h3><p className="muted">Carga JPG, PNG, WebP o PDF (máximo 8 MB). OCR local para imágenes; la captura extraída requiere revisión.</p>
  <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>{setFile(e.target.files?.[0]||null);setOcr("");setReviewed(false)}}/>
  {file&&<div><p><button className="secondary" disabled={busy||!file.type.startsWith("image/")} onClick={extract}>Extraer texto de imagen (OCR)</button></p>
@@ -44,7 +44,7 @@ export default function Home(){
  {ocr&&<p><label><input style={{width:"auto"}} type="checkbox" checked={reviewed} onChange={e=>setReviewed(e.target.checked)}/> Confirmo haber revisado el texto contra el original</label></p>}
  <button disabled={busy||Boolean(ocr&&!reviewed)} onClick={upload}>Guardar documento original y extracción revisada</button></div>}
  <h3>Archivos vinculados ({docs.length})</h3><div className="items">{docs.map(d=><div className="item" key={d.id}><a href={"/api/documents/"+d.id}>{d.filename}</a><div className="muted">{d.size_bytes} bytes · OCR revisado: {d.reviewed_at?"sí":"no"}</div><div className="small muted">SHA-256: {d.sha256}</div></div>)}</div>
- <p className="notice">El PDF disponible es un índice documental, NO el expediente consolidado con originales ni una certificación legal.</p>
+ <p className="notice">El índice y el borrador consolidado son documentos de consulta, NO certificados. Algunos archivos pueden no incorporarse al PDF; conserva siempre los originales.</p>
  </>:<p className="muted">Selecciona un contacto para administrar su expediente.</p>}</section></div>
  {message&&<section><p role="status" className={message.includes("Error")?"error":"muted"}>{message}</p></section>}
  <section><h2>Estado de la primera entrega</h2><p>Registro manual, clasificación de prospectos y clientes, conversión trazable, carga de documentos originales, OCR asistido en navegador para imágenes e índice PDF. Pendientes: extracción de campos específicos, OCR de PDF escaneados, expediente consolidado, perfiles de acceso, CRM y trámites.</p></section>
