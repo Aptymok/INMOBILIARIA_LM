@@ -6,11 +6,14 @@ export default function Home(){
  const [contacts,setContacts]=useState<Contact[]>([]),[selected,setSelected]=useState<Contact|null>(null),[docs,setDocs]=useState<Doc[]>([]);
  const [kind,setKind]=useState<"prospect"|"client">("prospect"),[name,setName]=useState(""),[email,setEmail]=useState(""),[phone,setPhone]=useState(""),[interest,setInterest]=useState(""),[notes,setNotes]=useState("");
  const [file,setFile]=useState<File|null>(null),[ocr,setOcr]=useState(""),[reviewed,setReviewed]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
+ const [editing,setEditing]=useState(false),[edit,setEdit]=useState({name:"",email:"",phone:"",interest:"",notes:""});
+ function selectContact(c:Contact){setSelected(c);setEditing(false);setEdit({name:c.name,email:c.email||"",phone:c.phone||"",interest:c.interest||"",notes:c.notes||""});setFile(null);setOcr("");setReviewed(false);void loadDocs(c.id)}
+ async function saveEdit(){if(!selected)return;setBusy(true);setMessage("");try{const r=await fetch("/api/contacts/"+selected.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(edit)});const data=await r.json();if(!r.ok)throw Error(data.error);setSelected(data);setEditing(false);await refresh();setMessage("Datos actualizados con registro de auditoría.");}catch(e){setMessage(String(e))}finally{setBusy(false)}}
  async function refresh(){const r=await fetch("/api/contacts",{cache:"no-store"});if(r.ok)setContacts(await r.json());else setMessage("No se pudo cargar contactos");}
  async function loadDocs(id:string){const r=await fetch("/api/documents?contactId="+id);if(r.ok)setDocs(await r.json());}
  useEffect(()=>{void refresh()},[]);
  async function create(e:React.FormEvent){e.preventDefault();setBusy(true);setMessage("");try{
- const r=await fetch("/api/contacts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind,name,email,phone,interest,notes})});const data=await r.json();if(!r.ok)throw Error(data.error);setName("");setEmail("");setPhone("");setInterest("");setNotes("");setMessage("Registro creado.");await refresh();setSelected(data);await loadDocs(data.id);
+ const r=await fetch("/api/contacts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind,name,email,phone,interest,notes})});const data=await r.json();if(!r.ok)throw Error(data.error);setName("");setEmail("");setPhone("");setInterest("");setNotes("");setMessage("Registro creado.");await refresh();selectContact(data);
  }catch(e){setMessage(String(e))}finally{setBusy(false)}}
  async function convert(){if(!selected||!confirm("¿Convertir este prospecto a cliente? Se preservará su historial."))return;setBusy(true);try{
  const r=await fetch("/api/contacts/"+selected.id+"/convert",{method:"POST"});const d=await r.json();if(!r.ok)throw Error(d.error);setSelected({...selected,kind:"client",status:"integration"});await refresh();setMessage("Cliente convertido; integración documental pendiente.");
@@ -32,9 +35,14 @@ export default function Home(){
  <div><label>Interés inmobiliario</label><input maxLength={300} value={interest} onChange={e=>setInterest(e.target.value)}/></div>
  <div><label>Notas</label><textarea maxLength={2000} value={notes} onChange={e=>setNotes(e.target.value)}/></div>
  </div><p><button disabled={busy}>Crear registro</button></p></form></section>
- <div className="two"><section><h2>Directorio ({contacts.length})</h2><div className="items">{contacts.map(c=><div className={"item "+(selected?.id===c.id?"selected":"")} key={c.id} onClick={()=>{setSelected(c);setFile(null);setOcr("");setReviewed(false);void loadDocs(c.id)}}><div className="row between"><strong>{c.name}</strong><span className="pill">{c.kind==="prospect"?"Posible":"Cliente"}</span></div><div className="muted">{c.email||c.phone||"Sin contacto"} · {c.status}</div></div>)}</div></section>
+ <div className="two"><section><h2>Directorio ({contacts.length})</h2><div className="items">{contacts.map(c=><div className={"item "+(selected?.id===c.id?"selected":"")} key={c.id} onClick={()=>selectContact(c)}><div className="row between"><strong>{c.name}</strong><span className="pill">{c.kind==="prospect"?"Posible":"Cliente"}</span></div><div className="muted">{c.email||c.phone||"Sin contacto"} · {c.status}</div></div>)}</div></section>
  <section>{selected?<><div className="row between"><h2>Expediente: {selected.name}</h2><span className="pill">{selected.kind==="prospect"?"Posible":"Nuevo cliente"}</span></div>
- <p className="muted">{selected.interest||"Sin interés declarado"}</p><div className="row">
+ <p className="muted">{selected.interest||"Sin interés declarado"}</p>
+ <div className="row"><button className="secondary" disabled={busy} onClick={()=>{setEditing(!editing);setEdit({name:selected.name,email:selected.email||"",phone:selected.phone||"",interest:selected.interest||"",notes:selected.notes||""})}}>{editing?"Cancelar edición":"Editar datos"}</button></div>
+ {editing&&<div className="edit-panel"><h3>Corrección de datos</h3><div className="grid">
+ {(["name","email","phone","interest","notes"] as const).map(key=><div key={key}><label>{({name:"Nombre",email:"Correo",phone:"Teléfono",interest:"Interés",notes:"Notas"} as const)[key]}</label>{key==="notes"?<textarea value={edit[key]} onChange={e=>setEdit({...edit,[key]:e.target.value})}/>:<input value={edit[key]} onChange={e=>setEdit({...edit,[key]:e.target.value})}/>}</div>)}
+ </div><p><button disabled={busy||!edit.name.trim()||(!edit.phone.trim()&&!edit.email.trim())} onClick={saveEdit}>Guardar cambios</button></p></div>}
+ <div className="row">
  {selected.kind==="prospect"&&<button className="secondary" disabled={busy} onClick={convert}>Convertir a cliente</button>}
  <a href={"/api/contacts/"+selected.id+"/summary"} className="secondary">Descargar índice PDF</a><a href={"/api/contacts/"+selected.id+"/bundle"} className="secondary">Descargar borrador de expediente</a></div>
  <hr/><h3>Documentos y evidencia</h3><p className="muted">Carga JPG, PNG, WebP o PDF (máximo 8 MB). OCR local para imágenes; la captura extraída requiere revisión.</p>
