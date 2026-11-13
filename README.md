@@ -48,3 +48,24 @@ No se ha configurado ningún despliegue, base de datos ni integración con SFI. 
 - Criterios de aceptación en `docs/FASE_1_CRITERIOS.md`.
 
 **Repositorio público para revisión de Luis**: no subir documentos personales reales, credenciales ni archivos de clientes. La instancia sigue sin base de datos ni despliegue configurados.
+
+## Prueba automatizada con datos ficticios
+
+El flujo de GitHub Actions en `.github/workflows/quality.yml` instala dependencias,
+verifica TypeScript, intenta compilar Next.js, levanta PostgreSQL de prueba, aplica
+la estructura de datos y ejecuta `scripts/smoke.mjs`.
+
+La prueba comprueba:
+- creación de un prospecto ficticio;
+- conversión al estado de cliente sin cambiar su ID;
+- incorporación y lectura de bytes documentales y su SHA-256;
+- registro de eventos de auditoría;
+- reversión de los datos simulados al finalizar.
+
+**La presencia del flujo no acredita una ejecución exitosa.** Se debe comprobar el
+resultado real en la pestaña Actions de GitHub. No hay aún una prueba extremo a
+extremo del navegador, del OCR, de la conversión real de PDFs o del servicio desplegado.
+
+Esta fase no está lista para gestionar documentos de clientes reales. La protección
+de acceso actual es inicial y no sustituye permisos individuales ni controles de
+seguridad de producción.
