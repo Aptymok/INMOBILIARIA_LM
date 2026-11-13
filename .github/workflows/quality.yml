@@ -1,13 +1,29 @@
-name: Calidad de codigo
+name: Calidad y pruebas de la Fase 1
 on:
   push:
     branches: [main]
   pull_request:
 jobs:
-  build:
+  build-and-smoke:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: lm_test
+          POSTGRES_PASSWORD: lm_ci_only
+          POSTGRES_DB: inmobiliaria_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lm_test -d inmobiliaria_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://lm_test:lm_ci_only@localhost:5432/inmobiliaria_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -15,7 +31,11 @@ jobs:
           node-version: '22'
       - name: Instalar dependencias
         run: npm install --no-audit --no-fund
-      - name: Verificar TypeScript
+      - name: Verificar tipos
         run: npx tsc --noEmit
-      - name: Compilar aplicacion
+      - name: Compilar aplicación
         run: npm run build
+      - name: Crear tablas de prueba
+        run: npm run db
+      - name: Comprobar circuito de datos ficticios
+        run: node scripts/smoke.mjs
