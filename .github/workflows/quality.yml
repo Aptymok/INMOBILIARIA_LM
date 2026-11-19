@@ -3,6 +3,9 @@ on:
   push:
     branches: [main]
   pull_request:
+concurrency:
+  group: lm-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build-and-smoke:
     runs-on: ubuntu-latest
