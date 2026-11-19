@@ -33,6 +33,25 @@ try {
   assert.ok(read.rows[0].file_bytes.equals(bytes));
   const counts = await client.query("SELECT count(*)::int AS total FROM activity_log WHERE contact_id=$1",[id]);
   assert.equal(counts.rows[0].total,2);
+  const property = await client.query(
+    "INSERT INTO properties(code,title,municipality,category,operation,price_mxn) VALUES($1,'Propiedad ficticia','Municipio ficticio','house','sale',1500000) RETURNING id",
+    ["CI-"+id]
+  );
+  const propertyId=property.rows[0].id;
+  const followup=await client.query(
+    "INSERT INTO followups(contact_id,property_id,subject,due_at) VALUES($1,$2,'Llamada ficticia',now()) RETURNING id,status",
+    [id,propertyId]
+  );
+  assert.equal(followup.rows[0].status,"pending");
+  const matched=await client.query(
+    "INSERT INTO contact_property_matches(contact_id,property_id) VALUES($1,$2) RETURNING status",
+    [id,propertyId]
+  );
+  assert.equal(matched.rows[0].status,"interested");
+  await client.query("UPDATE followups SET status='done',completed_at=now() WHERE id=$1",[followup.rows[0].id]);
+  const completed=await client.query("SELECT status,completed_at FROM followups WHERE id=$1",[followup.rows[0].id]);
+  assert.equal(completed.rows[0].status,"done");
+  assert.ok(completed.rows[0].completed_at);
   // Verify that a competing transaction cannot acquire the identity lock
   // until the first transaction releases it.
   await client.query("SELECT pg_advisory_xact_lock(73421, 1)");
@@ -46,7 +65,7 @@ try {
     competitor.release();
   }
   await client.query("ROLLBACK"); // Prueba aislada: no quedan datos ficticios.
-  console.log("OK: prospecto, conversión, documento, integridad, bitácora y bloqueo concurrente; cambios revertidos.");
+  console.log("OK: prospecto, conversión, documento, integridad, bitácora y bloqueo concurrente, propiedad, vinculación y seguimiento; cambios revertidos.");
 } catch (e) {
   await client.query("ROLLBACK");
   throw e;
