@@ -33,8 +33,20 @@ try {
   assert.ok(read.rows[0].file_bytes.equals(bytes));
   const counts = await client.query("SELECT count(*)::int AS total FROM activity_log WHERE contact_id=$1",[id]);
   assert.equal(counts.rows[0].total,2);
+  // Verify that a competing transaction cannot acquire the identity lock
+  // until the first transaction releases it.
+  await client.query("SELECT pg_advisory_xact_lock(73421, 1)");
+  const competitor = await pool.connect();
+  try {
+    await competitor.query("BEGIN");
+    const blocked = await competitor.query("SELECT pg_try_advisory_xact_lock(73421, 1) AS acquired");
+    assert.equal(blocked.rows[0].acquired,false);
+    await competitor.query("ROLLBACK");
+  } finally {
+    competitor.release();
+  }
   await client.query("ROLLBACK"); // Prueba aislada: no quedan datos ficticios.
-  console.log("OK: prospecto, conversión, documento, integridad y bitácora; cambios revertidos.");
+  console.log("OK: prospecto, conversión, documento, integridad, bitácora y bloqueo concurrente; cambios revertidos.");
 } catch (e) {
   await client.query("ROLLBACK");
   throw e;

@@ -33,6 +33,8 @@ export async function POST(req:NextRequest){
  const client=await db().connect();
  try{
  await client.query("BEGIN");
+ // Lock the parent contact to serialize duplicate checks for this dossier.
+ await client.query("SELECT id FROM contacts WHERE id=$1 FOR UPDATE",[id]);
  const existing=await client.query("SELECT id FROM contacts WHERE id=$1",[id]);if(!existing.rowCount){await client.query("ROLLBACK");return NextResponse.json({error:"Contacto no encontrado"},{status:404});}
  const same=await client.query("SELECT id FROM documents WHERE contact_id=$1 AND sha256=$2 LIMIT 1",[id,sha]);
  if(same.rows.length){await client.query("ROLLBACK");return NextResponse.json({error:"Este archivo ya fue incorporado al expediente.",documentId:same.rows[0].id},{status:409});}
