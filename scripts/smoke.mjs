@@ -48,6 +48,9 @@ try {
     [id,propertyId]
   );
   assert.equal(matched.rows[0].status,"interested");
+  await client.query("UPDATE contact_property_matches SET status='visit',updated_at=now() WHERE contact_id=$1 AND property_id=$2",[id,propertyId]);
+  const visited=await client.query("SELECT status FROM contact_property_matches WHERE contact_id=$1 AND property_id=$2",[id,propertyId]);
+  assert.equal(visited.rows[0].status,"visit");
   await client.query("UPDATE followups SET status='done',completed_at=now() WHERE id=$1",[followup.rows[0].id]);
   const completed=await client.query("SELECT status,completed_at FROM followups WHERE id=$1",[followup.rows[0].id]);
   assert.equal(completed.rows[0].status,"done");
