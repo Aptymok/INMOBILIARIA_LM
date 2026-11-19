@@ -17,6 +17,8 @@ export async function POST(req:NextRequest){
  const pool=db();const client=await pool.connect();
  try{
  await client.query("BEGIN");
+ // Serialize contact identity checks, including concurrent creates and edits.
+ await client.query("SELECT pg_advisory_xact_lock(73421, 1)");
  // Use one transaction so no contact is created without its initial audit event.
  const duplicate=await client.query("SELECT id,name,kind FROM contacts WHERE (NULLIF($1::text,'') IS NOT NULL AND lower(email)=lower($1)) OR (NULLIF($2::text,'') IS NOT NULL AND phone=$2) LIMIT 1",[email,phone]);
  if(duplicate.rows.length){await client.query("ROLLBACK");return NextResponse.json({error:"Ya existe un contacto con ese correo o teléfono.",existing:duplicate.rows[0]},{status:409});}
