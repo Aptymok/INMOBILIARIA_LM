@@ -6,7 +6,7 @@
 
 **Capacidades**: directorio y conversión de contactos; carga documental y revisión OCR para imágenes; registro de propiedades con código único y estados; programación y cierre de seguimientos; vinculación de interesados y propiedades; auditoría básica e índice/borrador documental.
 
-## Arranque en una computadora, solo pruebas con datos ficticios
+## Inicio simplificado en Windows\n\nCon Docker Desktop y Node.js 22 instalados, ejecutar desde PowerShell en el repositorio: `.\\INICIAR_LM.ps1`. El script crea una contraseña individual de demostración en `.env.local`, arranca la base local, instala dependencias y ejecuta las migraciones. No cambia la política de seguridad: exclusivamente datos ficticios. Si PowerShell bloquea scripts, ejecutar desde una consola con política apropiada administrada por el usuario; no desactivar protecciones globalmente.\n\n## Arranque en una computadora, solo pruebas con datos ficticios
 
 Requisitos: Docker con Docker Compose, Node.js 22 y npm. En carpeta del repositorio:
 
