@@ -15,6 +15,8 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
   const c=await db().connect();
   try{
    await c.query("BEGIN");
+   // Same identity lock as POST: prevents concurrent email/phone duplicates.
+   await c.query("SELECT pg_advisory_xact_lock(73421, 1)");
    const old=await c.query("SELECT id,kind,name,email,phone,interest,notes,status FROM contacts WHERE id=$1 FOR UPDATE",[id]);
    if(!old.rows.length){await c.query("ROLLBACK");return NextResponse.json({error:"Contacto no encontrado"},{status:404});}
    const duplicate=await c.query("SELECT id,name FROM contacts WHERE id<>$1 AND ((NULLIF($2::text,'') IS NOT NULL AND lower(email)=lower($2)) OR (NULLIF($3::text,'') IS NOT NULL AND phone=$3)) LIMIT 1",[id,email,phone]);
