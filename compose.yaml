@@ -1,0 +1,20 @@
+# PostgreSQL local only. Never expose port 5432 to the internet.
+services:
+  database:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: inmobiliaria_lm
+      POSTGRES_USER: lm_local
+      POSTGRES_PASSWORD: local_demo_change_before_real_use
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - lm_local_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lm_local -d inmobiliaria_lm"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  lm_local_data:

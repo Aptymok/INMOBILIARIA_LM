@@ -69,3 +69,14 @@ extremo del navegador, del OCR, de la conversión real de PDFs o del servicio de
 Esta fase no está lista para gestionar documentos de clientes reales. La protección
 de acceso actual es inicial y no sustituye permisos individuales ni controles de
 seguridad de producción.
+
+## Módulo operativo (tercera iteración)
+
+- Inventario de propiedades, estado de disponibilidad, precio y ubicación general.
+- Agenda de gestiones vinculadas con contactos y propiedades, con apertura/cierre.
+- Relación prospecto–propiedad sin duplicar el contacto.
+- Migraciones 001/002 y pruebas transaccionales con datos simulados.
+- Pantalla en `/operaciones` desde la página principal.
+- **Para ejecutar hoy con costo de infraestructura local y solo datos ficticios:** [guía de operación](docs/OPERAR_HOY.md).
+
+La plataforma sigue sin controles adecuados para datos personales reales, acceso multiusuario o despliegue público. No se ha contratado ni desplegado ningún servicio.
