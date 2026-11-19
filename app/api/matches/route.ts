@@ -18,3 +18,20 @@ export async function POST(req:NextRequest){
   }catch(e){await c.query("ROLLBACK");if((e as {code?:string}).code==="23503")return NextResponse.json({error:"Contacto o propiedad inexistente"},{status:404});throw e;}finally{c.release();}
  }catch(e){console.error(e);return NextResponse.json({error:"No fue posible vincular contacto y propiedad"},{status:500});}
 }
+
+export async function PATCH(req:NextRequest){
+ try{
+  const d=await req.json(),contactId=String(d?.contactId||""),propertyId=String(d?.propertyId||""),status=String(d?.status||"");
+  if(!validUuid(contactId)||!validUuid(propertyId)||!["interested","visit","negotiating","discarded"].includes(status))
+   return NextResponse.json({error:"Identificadores o etapa inválidos"},{status:400});
+  const c=await db().connect();try{
+   await c.query("BEGIN");
+   const old=await c.query("SELECT status FROM contact_property_matches WHERE contact_id=$1 AND property_id=$2 FOR UPDATE",[contactId,propertyId]);
+   if(!old.rowCount){await c.query("ROLLBACK");return NextResponse.json({error:"Vínculo no encontrado"},{status:404});}
+   if(old.rows[0].status===status){await c.query("COMMIT");return NextResponse.json({ok:true,status});}
+   await c.query("UPDATE contact_property_matches SET status=$3,updated_at=now() WHERE contact_id=$1 AND property_id=$2",[contactId,propertyId,status]);
+   await c.query("INSERT INTO activity_log(contact_id,actor,action,details) VALUES ($1,$2,'property.match_stage_changed',$3::jsonb)",[contactId,process.env.ADMIN_USER||"admin",JSON.stringify({propertyId,from:old.rows[0].status,to:status})]);
+   await c.query("COMMIT");return NextResponse.json({ok:true,status});
+  }catch(e){await c.query("ROLLBACK");throw e;}finally{c.release();}
+ }catch(e){console.error(e);return NextResponse.json({error:"No fue posible actualizar la etapa comercial"},{status:500});}
+}
