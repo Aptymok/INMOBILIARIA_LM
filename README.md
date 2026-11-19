@@ -80,3 +80,7 @@ seguridad de producción.
 - **Para ejecutar hoy con costo de infraestructura local y solo datos ficticios:** [guía de operación](docs/OPERAR_HOY.md).
 
 La plataforma sigue sin controles adecuados para datos personales reales, acceso multiusuario o despliegue público. No se ha contratado ni desplegado ningún servicio.
+
+### Inicio simplificado en Windows (solo demostración)
+
+Con Docker Desktop abierto y Node.js instalado, ejecutar `INICIAR_LM.ps1` desde PowerShell. El archivo prepara PostgreSQL, instala dependencias, aplica migraciones y abre el servidor local; crea una contraseña aleatoria en `.env.local` cuando no existe. **No habilita uso con datos personales reales ni despliegue público.**
