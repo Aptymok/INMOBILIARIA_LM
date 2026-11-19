@@ -28,7 +28,7 @@ export default function Home(){
  const data=new FormData();data.set("contactId",selected.id);data.set("file",file);data.set("ocrText",ocr);data.set("reviewed",String(reviewed));
  const r=await fetch("/api/documents",{method:"POST",body:data});const d=await r.json();if(!r.ok)throw Error(d.error);setFile(null);setOcr("");setReviewed(false);await loadDocs(selected.id);await loadActivity(selected.id);setMessage("Original almacenado. Integridad SHA-256 registrada.");
  }catch(e){setMessage(String(e))}finally{setBusy(false)}}
- return <><header><h1>INMOBILIARIA LM</h1><p>Centro de operaciones · Fase 1: clientes y expedientes</p></header><main>
+ return <><header><h1>INMOBILIARIA LM</h1><p>Centro de operaciones · Fase 1: clientes y expedientes</p></header><main><nav className="row"><a className="secondary" href="/operaciones">Abrir centro de operaciones</a></nav>
  <section><h2>Registro de contacto</h2><form onSubmit={create}><div className="grid">
  <div><label>Clasificación inicial</label><select value={kind} onChange={e=>setKind(e.target.value as "prospect"|"client")}><option value="prospect">Cliente posible (prospecto)</option><option value="client">Cliente nuevo (en integración)</option></select></div>
  <div><label>Nombre *</label><input required maxLength={180} value={name} onChange={e=>setName(e.target.value)}/></div>
